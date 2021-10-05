@@ -32,15 +32,15 @@ chmod +x install.sh
 
 After this script is ran, your catkin workspace will look as such:
 
-autonomous_robotics
-	build
-	devel
-	src
-		mae252_autonomous_robotics
-		turtlebot3
-		turtlebot3_msgs
-		turtlebot3_simulation
-		
+### catkin workspace
+  - build
+  - devel
+  - src
+    - mae252_autonomous_robotics
+    - turtlebot3
+    - turtlebot3_msgs
+    - turtlebot3_simulation
+	
 
 You need to then source your workspace setup files. Make sure you are in the autonomous_robotics directory. Run these commands 
 
