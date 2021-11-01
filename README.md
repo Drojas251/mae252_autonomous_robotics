@@ -56,7 +56,6 @@ Go into the autonomous_robotics directory and run the demo
 
 ```
 cd ~/autonomous_robotics
-export TURTLEBOT3_MODEL=waffle
-roslaunch turtlebot3_gazebo turtlebot3_world.launch
+roslaunch robot_gazebo robot_world.launch
 ```
 
