@@ -59,3 +59,9 @@ cd ~/autonomous_robotics
 roslaunch robot_gazebo robot_world.launch
 ```
 
+### Other Things to Install
+
+```
+sudo apt-get install ros-noetic-ros-numpy
+```
+
