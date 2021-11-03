@@ -131,7 +131,7 @@
 
   <link name="imu_link"/>
 
-  <joint name="scan_joint" type="fixed">
+  <!--<joint name="scan_joint" type="fixed">
     <parent link="base_link"/>
     <child link="base_scan"/>
     <origin xyz="-0.032 0 0.172" rpy="0 0 0"/>
@@ -160,10 +160,10 @@
                iyy="0.001" iyz="0.0"
                izz="0.001" />
     </inertial>
-  </link>
+  </link> -->
 
 
-  <!-- Remove after you create new file. Do not want to change the source code-->
+  <!-- Remove after you create new file. Do not want to change the source code
   <xacro:include filename="$(find kinect_description)/urdf/kinect/kinect.xacro">
         <xacro:arg name="gazebo" value="${gazebo}"/>
     </xacro:include>
@@ -175,6 +175,15 @@
                          cam_pz="0.23"
                          cam_or="0.0"
                          cam_op="${pi/180}"
-                         cam_oy="0.3"/> 
+                         cam_oy="0.3"/> -->
+  <xacro:arg name="gpu" default="false"/>
+  <xacro:property name="gpu" value="$(arg gpu)" />
+  <xacro:arg name="organize_cloud" default="false"/>
+  <xacro:property name="organize_cloud" value="$(arg organize_cloud)" />
+
+  <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
+  <xacro:VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" organize_cloud="${organize_cloud}" hz="10" samples="440" gpu="${gpu}">
+    <origin xyz="-0.025 0 0.145" rpy="0 0 0" />
+  </xacro:VLP-16>
 
 </robot>

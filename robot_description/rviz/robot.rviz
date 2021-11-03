@@ -8,7 +8,7 @@ Panels:
         - /Status1
         - /Grid1
         - /RobotModel1
-        - /TF1
+        - /PointCloud21
       Splitter Ratio: 0.6029411554336548
     Tree Height: 734
   - Class: rviz/Selection
@@ -74,11 +74,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        base_scan:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         caster_back_link:
           Alpha: 1
           Show Axes: false
@@ -88,27 +83,16 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        kinect_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        kinect_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        kinect_link:
+        velodyne:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        kinect_rgb_frame:
+        velodyne_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        kinect_rgb_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wheel_left_link:
           Alpha: 1
           Show Axes: false
@@ -125,78 +109,17 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
-    - Class: rviz/TF
-      Enabled: true
-      Frame Timeout: 15
-      Frames:
-        All Enabled: true
-        base_footprint:
-          Value: true
-        base_link:
-          Value: true
-        base_scan:
-          Value: true
-        caster_back_link:
-          Value: true
-        imu_link:
-          Value: true
-        kinect_depth_frame:
-          Value: true
-        kinect_depth_optical_frame:
-          Value: true
-        kinect_link:
-          Value: true
-        kinect_rgb_frame:
-          Value: true
-        kinect_rgb_optical_frame:
-          Value: true
-        odom:
-          Value: true
-        wheel_left_link:
-          Value: true
-        wheel_right_link:
-          Value: true
-      Marker Alpha: 1
-      Marker Scale: 0.4000000059604645
-      Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: true
-      Tree:
-        odom:
-          base_footprint:
-            base_link:
-              base_scan:
-                {}
-              caster_back_link:
-                {}
-              imu_link:
-                {}
-              kinect_rgb_frame:
-                kinect_depth_frame:
-                  kinect_depth_optical_frame:
-                    {}
-                kinect_link:
-                  {}
-                kinect_rgb_optical_frame:
-                  {}
-              wheel_left_link:
-                {}
-              wheel_right_link:
-                {}
-      Update Interval: 0
-      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
+        Max Value: 2.552327871322632
+        Min Value: -0.14237457513809204
         Value: true
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 255
-      Color Transformer: RGB8
+      Color Transformer: AxisColor
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
@@ -208,8 +131,8 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.009999999776482582
-      Style: Flat Squares
-      Topic: /kinect/sd/points
+      Style: Boxes
+      Topic: /velodyne_points
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -242,7 +165,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.910049319267273
+      Distance: 4.763579368591309
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -250,17 +173,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.02010004222393036
-        Y: -0.467065691947937
-        Z: -4.76837158203125e-07
+        X: -0.0066904714331030846
+        Y: -0.01557895541191101
+        Z: -4.6938657760620117e-07
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7953976392745972
+      Pitch: 0.310397744178772
       Target Frame: <Fixed Frame>
-      Yaw: 4.793606281280518
+      Yaw: 4.688607215881348
     Saved: ~
 Window Geometry:
   Displays:
