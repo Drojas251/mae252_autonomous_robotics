@@ -15,14 +15,45 @@ from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 
 def callback(data):
+    #Create numpy array
     pc = ros_numpy.numpify(data)
-    points=np.zeros((len(pc)*len(pc[0]),3))
-    count = 0
-    print(pc[0])
-    print(pc[1])
+
+    #attempt to find the different rgb colors for each channel
+    #or the indexing of the z value for arrays
+    amount = len(pc) #Check if amount = samples = 440
+    print("there are", amount, "samples being taken")
+    distribution = round(amount/16)
+    print("Point cloud looks like \n",pc[::distribution,2:])
+
+    #Find the cutoff point for channels to filter lidar data
+    #Using either color or hieght
+    cutoffColor = 0
+    cutoffHieght = 0
+    colorValue = np.array([255,255,255])
+    hiehgtValue = .2 #Turtlebot is 192mm. This assumes data
+                     #This assumes Velodyne data is in meters
+
+    #Color Search
+    for i in range(len(pc)):
+        if pc[i,3] == colorValue[0]:
+            print(pc[i,3:])
+            break
+        else:
+            cutoffColor = i
     
-    print(pc[2])
-    print(pc[200])
+    #Height Search
+    for i in range(len(pc)):
+        if pc[i,2] == hiehgtValue:
+            print(pc[i,2])
+            break
+        else:
+            cutoffHieght = i
+
+    #This assumes that pc index increases as hieght increases
+    pc_filtered_color = pc[:cutoffColor,:3]
+    pc_filtered_height = pc[pc[:cutoffHieght,:3]]
+
+
             
 
 
