@@ -272,33 +272,33 @@
       <static>1</static>
     </model>
     <state world_name='default'>
-      <sim_time>122 331000000</sim_time>
-      <real_time>123 84120358</real_time>
-      <wall_time>1635316186 687038295</wall_time>
-      <iterations>122331</iterations>
+      <sim_time>201 851000000</sim_time>
+      <real_time>80 175637109</real_time>
+      <wall_time>1636443577 869194335</wall_time>
+      <iterations>79520</iterations>
       <model name='brick_world'>
-        <pose>0.115908 0.8221 0 0 -0 0</pose>
+        <pose>5.31079 1.87525 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='Wall_4'>
-          <pose>0.085 -1.13946 0 0 0 -0.000922</pose>
+          <pose>5.27988 -0.086313 0 0 0 -0.000922</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='Wall_7'>
-          <pose>-5.28 0.555541 0 0 -0 1.5708</pose>
+          <pose>-0.085122 1.60869 0 0 -0 1.5708</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='Wall_8'>
-          <pose>0.15 1.22554 0 0 0 -0.001845</pose>
+          <pose>5.34488 2.27869 0 0 0 -0.001845</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='Wall_9'>
-          <pose>5.54 0.035541 0 0 0 -1.59621</pose>
+          <pose>10.7349 1.08869 0 0 0 -1.59621</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -320,7 +320,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-18.0183 -0.057978 8.55933 0 0.467643 -0.159803</pose>
+        <pose>1.77379 -3.33943 22.6209 0 1.3338 1.4882</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>

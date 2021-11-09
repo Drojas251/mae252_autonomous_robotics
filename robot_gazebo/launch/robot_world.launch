@@ -1,8 +1,8 @@
 <launch>
   <!-- Arguments-->
   <arg name="model" default="burger" />
-  <arg name="x_pos" default="-4.5"/>
-  <arg name="y_pos" default="0.0"/>
+  <arg name="x_pos" default="0.1"/>
+  <arg name="y_pos" default="0.1"/>
   <arg name="z_pos" default="0.0"/>
   <arg name="multi_robot_name" default=""/>
 
@@ -29,7 +29,7 @@
   </node>
 
   <!--Launch Rviz-->
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_description)/rviz/robot.rviz"/>
+ <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_description)/rviz/robot.rviz"/>
 
 
 </launch>
