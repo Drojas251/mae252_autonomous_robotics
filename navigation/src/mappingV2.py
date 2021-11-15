@@ -63,6 +63,9 @@ class Mapping(object):
 
                         # store in map
                         map[[int(element_y) ], [int(element_x)]] = 1
+        
+        print(map)
+        print("****************************************")
 
 
     def get_turtlebot_pose(self,msg):
