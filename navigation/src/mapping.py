@@ -1,35 +1,22 @@
 #!/usr/bin/env python3
-#from numpy.core.fromnumeric import shape, size
 import rospy
 import numpy as np
-#import sensor_msgs.point_cloud2 as pc2
 import ros_numpy
 import math
 
 from sensor_msgs.msg import PointCloud2
 from gazebo_msgs.msg import LinkStates
+from std_msgs.msg import ByteMultiArray
 
 
-def euler_from_quaternion(x, y, z, w):
-    """
-    Convert a quaternion into euler angles (roll, pitch, yaw)
-    roll is rotation around x in radians (counterclockwise)
-    pitch is rotation around y in radians (counterclockwise)
-    yaw is rotation around z in radians (counterclockwise)
-    """
-    # t0 = +2.0 * (w * x + y * z)
-    # t1 = +1.0 - 2.0 * (x * x + y * y)
-    # roll_x = math.atan2(t0, t1)
+
+def euler_from_quaternion(orientation_msg):
+    #calculate nume and denom of components inside of atan for euler cordinates
+    numerator = 2.0 * (orientation_msg.w * orientation_msg.z + orientation_msg.x * orientation_msg.y)
+    denominator = 1.0 - 2.0 * (orientation_msg.y * orientation_msg.y + orientation_msg.z * orientation_msg.z)
+    yaw_z = math.atan2(numerator, denominator)
     
-    # t2 = +2.0 * (w * y - z * x)
-    # t2 = +1.0 if t2 > +1.0 else t2
-    # t2 = -1.0 if t2 < -1.0 else t2
-    # pitch_y = math.asin(t2)
-    
-    t3 = +2.0 * (w * z + x * y)
-    t4 = +1.0 - 2.0 * (y * y + z * z)
-    yaw_z = math.atan2(t3, t4)
-    
+    #yaw is rotation around z in radians (counterclockwise)
     return yaw_z # in radians
 
 class Mapping():
@@ -37,6 +24,8 @@ class Mapping():
     def __init__(self):
         self.get_pc = rospy.Subscriber("/passthrough/output", PointCloud2, self.pc_callback)
         self.get_pos = rospy.Subscriber("/gazebo/link_states", LinkStates, self.pos_callback)
+        self.pub = rospy.Publisher("worldmap", ByteMultiArray, queue_size = 3)
+        self.rate = rospy.Rate(1)
 
         #map dimensions
         X = 12 #meters
@@ -49,56 +38,69 @@ class Mapping():
 
 
     def pos_callback(self, data):
-        # self.turtle_bot_pose = Pose()
-        # self.turtle_bot_pose = data.pose[5].position.x
-        theta = euler_from_quaternion(data.pose[5].orientation.x, data.pose[5].orientation.y,
-                                      data.pose[5].orientation.z, data.pose[5].orientation.w)
+        #get robot x and y cords in world map followed by orientation in world map
         pos_x = data.pose[5].position.x
         pos_y = data.pose[5].position.y
+        theta = euler_from_quaternion(data.pose[5].orientation)
+        
         #print("x: ", str(pos_x), "y : ", str(pos_y), " theta: ", str(theta))
-        #print("angle: ", str(theta), " position:",str(pos_x)," ", str(pos_y))
-        #print(euler_from_quaternion(theta2.x, theta2.y, theta2.z, theta2.w))
-        print(theta)
-        #define transform matrix
-        self.h_transform = np.array([math.cos(theta),-math.sin(theta),pos_x, math.sin(theta),math.cos(theta),pos_y,0 , 0, 1]).reshape(3,3)
-        #print(self.h_transform)
+
+        #define 2D transform matrix
+        self.h_transform = np.array([math.cos(theta),-math.sin(theta),pos_x, 
+                                    math.sin(theta),math.cos(theta),pos_y,
+                                    0 ,             0,              1]).reshape(3,3)
 
 
     def pc_callback(self, data):
         
         pc = ros_numpy.numpify(data)
-         # create map
+
 
         for i in range(0,pc.size):
+            #identify cords for each filtered lidar point from robot
             object_x = pc[i][0]
             object_y = pc[i][1]
             robot_frame_object = np.array([object_x, object_y, 1]).reshape(3,1)
             dist_away = math.sqrt(object_x**2+object_y**2)
+
+            #filter lidar points to remove ground points in distance
             if dist_away<=4:
+                #change lidar object points to world cordinate system
                 worldtf = np.dot(self.h_transform,robot_frame_object)
-                #print("world:\n",str(worldtf),"\nrobot:\n",str(robot_frame_object))
+
                 # get element in the map where the point would belong
                 element_x = round(worldtf[0][0]/self.delta_x)
                 element_y = round(worldtf[1][0]/self.delta_y)
 
-
+                #remove elements outside of worldmap indexing (AKA negatives)
+                if (element_x) >= 0 & (element_y >=0):
+                    self.world_map[[int(element_y) ], [int(element_x)]] = 1
+                    
+                #Troubleshooting purposes
+                #np.set_printoptions(threshold = np.inf)
                 #print("x: ",str(element_x), " y: ", str(element_y))
                 # store in map
-                self.world_map[[int(element_y) ], [int(element_x)]] = 1
-                np.set_printoptions(threshold = np.inf)
-                # print("*****************************")
-                # print(self.world_map)
+                
+                #print("*****************************")
+                #print(self.world_map)
+        
+        #publish world map info
+        self.updated_w_map = ByteMultiArray()
+        self.updated_w_map.data = self.world_map
+        self.pub.publish(self.updated_w_map)
+        self.rate.sleep()
                 
 
 
 def main():
     rospy.init_node('listener', anonymous=True)
+    #rospy.init_node('talker', anonymous = True)
+
 
     mapping = Mapping()
 
     try:
         rospy.spin()
-        print("spinning")
     except KeyboardInterrupt:
         print("shut down")
 
