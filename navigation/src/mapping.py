@@ -6,10 +6,12 @@ import math
 
 from sensor_msgs.msg import PointCloud2
 from gazebo_msgs.msg import LinkStates
-from std_msgs.msg import ByteMultiArray
+from nav_msgs.msg import OccupancyGrid
 
 
-
+#### @Diego, is this a proper place to define a function or should it be
+#### defiend in the Mapping() class? If it is defined in the mapping class 
+#### how do I call it?
 def euler_from_quaternion(orientation_msg):
     #calculate nume and denom of components inside of atan for euler cordinates
     numerator = 2.0 * (orientation_msg.w * orientation_msg.z + orientation_msg.x * orientation_msg.y)
@@ -24,18 +26,26 @@ class Mapping():
     def __init__(self):
         self.get_pc = rospy.Subscriber("/passthrough/output", PointCloud2, self.pc_callback)
         self.get_pos = rospy.Subscriber("/gazebo/link_states", LinkStates, self.pos_callback)
-        self.pub = rospy.Publisher("worldmap", ByteMultiArray, queue_size = 3)
+        self.pub = rospy.Publisher("worldmap", OccupancyGrid, queue_size = 3)
         self.rate = rospy.Rate(1)
 
         #map dimensions
-        X = 12 #meters
-        Y = 3 # meters
-        self.delta_x = 0.1 # meters
-        self.delta_y = 0.1 # meters 
-        print(self.delta_x, self.delta_y)
-        self.world_map = np.zeros((int(Y/self.delta_y), int(X/self.delta_x)))
-    
+        self.X = 10 #meters
+        self.Y = 3 # meters
+        self.resolution = .01 # meters
+        self.world_map = np.zeros((int(self.Y/self.resolution), int(self.X/self.resolution)))
 
+        ###### @Diego, This information is related to setting up the occupancy grid
+        ###### message. Not confident that this is the correct placement
+        #publish world map info
+        self.updated_w_map = OccupancyGrid()
+        print(self.updated_w_map)
+        self.updated_w_map.data = self.world_map #input data
+        self.updated_w_map.info.resolution = 1/self.resolution # resolution = 1/resolution
+        self.updated_w_map.info.width = self.X #length of tunnel (depends on tunnel orientation)
+        self.updated_w_map.info.height = self.Y #width of tunnel (depends on tunnel orientation)
+        self.updated_w_map.info.origin = [0,0,0] #map orgin in gazebo world
+    
 
     def pos_callback(self, data):
         #get robot x and y cords in world map followed by orientation in world map
@@ -43,8 +53,6 @@ class Mapping():
         pos_y = data.pose[5].position.y
         theta = euler_from_quaternion(data.pose[5].orientation)
         
-        #print("x: ", str(pos_x), "y : ", str(pos_y), " theta: ", str(theta))
-
         #define 2D transform matrix
         self.h_transform = np.array([math.cos(theta),-math.sin(theta),pos_x, 
                                     math.sin(theta),math.cos(theta),pos_y,
@@ -54,7 +62,6 @@ class Mapping():
     def pc_callback(self, data):
         
         pc = ros_numpy.numpify(data)
-
 
         for i in range(0,pc.size):
             #identify cords for each filtered lidar point from robot
@@ -69,8 +76,8 @@ class Mapping():
                 worldtf = np.dot(self.h_transform,robot_frame_object)
 
                 # get element in the map where the point would belong
-                element_x = round(worldtf[0][0]/self.delta_x)
-                element_y = round(worldtf[1][0]/self.delta_y)
+                element_x = round(worldtf[0][0]/self.resolution)
+                element_y = round(worldtf[1][0]/self.resolution)
 
                 #remove elements outside of worldmap indexing (AKA negatives)
                 if (element_x) >= 0 & (element_y >=0):
@@ -81,14 +88,17 @@ class Mapping():
                 #print("x: ",str(element_x), " y: ", str(element_y))
                 # store in map
                 
-                #print("*****************************")
-                #print(self.world_map)
+                #Troubleshooting purposes
+                print(self.world_map)
+                print("*****************************")
+
+                #### @Diego, I'm publishing the octo map here, but I'm 
+                #### guessing it should be published not in a callback
+                self.pub.publish(self.updated_w_map)
+                #self.rate.sleep()
+                print(self.updated_w_map)
         
-        #publish world map info
-        self.updated_w_map = ByteMultiArray()
-        self.updated_w_map.data = self.world_map
-        self.pub.publish(self.updated_w_map)
-        self.rate.sleep()
+
                 
 
 
@@ -96,11 +106,11 @@ def main():
     rospy.init_node('listener', anonymous=True)
     #rospy.init_node('talker', anonymous = True)
 
-
     mapping = Mapping()
 
     try:
         rospy.spin()
+        
     except KeyboardInterrupt:
         print("shut down")
 
