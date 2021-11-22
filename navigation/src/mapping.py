@@ -7,6 +7,7 @@ import math
 from sensor_msgs.msg import PointCloud2
 from gazebo_msgs.msg import LinkStates
 from nav_msgs.msg import OccupancyGrid
+from std_msgs.msg import Int8
 
 
 #### @Diego, is this a proper place to define a function or should it be
@@ -42,29 +43,23 @@ class Mapping():
 
         while not rospy.is_shutdown():
   
-           
-            
-            #print(self.updated_w_map)
-
             self.updated_w_map = OccupancyGrid()
-            #print(self.updated_w_map)
             self.updated_w_map.info.resolution = 1/self.resolution # resolution = 1/resolution
             self.updated_w_map.info.width = self.X #length of tunnel (depends on tunnel orientation)
             self.updated_w_map.info.height = self.Y #width of tunnel (depends on tunnel orientation)
             self.updated_w_map.info.origin.position.x = 0 #map orgin in gazebo world
             self.updated_w_map.info.origin.position.y = 0
             self.updated_w_map.info.origin.position.z = 0
-            self.updated_w_map.data = self.world_map.ravel() #input data
             self.updated_w_map.header.stamp = rospy.Time.now()
             self.updated_w_map.header.frame_id = "octo-map"
-            #self.pub.publish(self.updated_w_map)
-            #print(self.updated_w_map)
+            arr = Int8()
+            arr.data = self.world_map.tolist()
+            self.updated_w_map.data = arr.data #input data
 
-            self.updated_w_map.data = self.world_map.tolist() #input data
-            #print(type(self.world_map.tolist()))
             self.updated_w_map.header.stamp = rospy.Time.now()
-            self.pub.publish(self.updated_w_map.data)
+            self.pub.publish(self.updated_w_map)
             rospy.Rate.sleep(self.rate)
+
         return;
     
 
@@ -102,7 +97,7 @@ class Mapping():
 
                 #remove elements outside of worldmap indexing (AKA negatives)
                 if (element_x) >= 0 & (element_y >=0):
-                    self.world_map[[int(element_y) ], [int(element_x)]] = int(1)
+                    self.world_map[[int(element_y) ], [int(element_x)]] = 1
                     
                 #Troubleshooting purposes
                 #np.set_printoptions(threshold = np.inf)
