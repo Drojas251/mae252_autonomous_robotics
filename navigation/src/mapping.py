@@ -38,13 +38,34 @@ class Mapping():
         ###### @Diego, This information is related to setting up the occupancy grid
         ###### message. Not confident that this is the correct placement
         #publish world map info
-        self.updated_w_map = OccupancyGrid()
-        print(self.updated_w_map)
-        self.updated_w_map.data = self.world_map #input data
-        self.updated_w_map.info.resolution = 1/self.resolution # resolution = 1/resolution
-        self.updated_w_map.info.width = self.X #length of tunnel (depends on tunnel orientation)
-        self.updated_w_map.info.height = self.Y #width of tunnel (depends on tunnel orientation)
-        self.updated_w_map.info.origin = [0,0,0] #map orgin in gazebo world
+        
+
+        while not rospy.is_shutdown():
+  
+           
+            
+            #print(self.updated_w_map)
+
+            self.updated_w_map = OccupancyGrid()
+            #print(self.updated_w_map)
+            self.updated_w_map.info.resolution = 1/self.resolution # resolution = 1/resolution
+            self.updated_w_map.info.width = self.X #length of tunnel (depends on tunnel orientation)
+            self.updated_w_map.info.height = self.Y #width of tunnel (depends on tunnel orientation)
+            self.updated_w_map.info.origin.position.x = 0 #map orgin in gazebo world
+            self.updated_w_map.info.origin.position.y = 0
+            self.updated_w_map.info.origin.position.z = 0
+            self.updated_w_map.data = self.world_map.ravel() #input data
+            self.updated_w_map.header.stamp = rospy.Time.now()
+            self.updated_w_map.header.frame_id = "octo-map"
+            #self.pub.publish(self.updated_w_map)
+            #print(self.updated_w_map)
+
+            self.updated_w_map.data = self.world_map.tolist() #input data
+            #print(type(self.world_map.tolist()))
+            self.updated_w_map.header.stamp = rospy.Time.now()
+            self.pub.publish(self.updated_w_map.data)
+            rospy.Rate.sleep(self.rate)
+        return;
     
 
     def pos_callback(self, data):
@@ -81,22 +102,18 @@ class Mapping():
 
                 #remove elements outside of worldmap indexing (AKA negatives)
                 if (element_x) >= 0 & (element_y >=0):
-                    self.world_map[[int(element_y) ], [int(element_x)]] = 1
+                    self.world_map[[int(element_y) ], [int(element_x)]] = int(1)
                     
                 #Troubleshooting purposes
                 #np.set_printoptions(threshold = np.inf)
                 #print("x: ",str(element_x), " y: ", str(element_y))
                 # store in map
-                
+        
                 #Troubleshooting purposes
-                print(self.world_map)
-                print("*****************************")
+                #print(self.world_map)
+                #print("*****************************")
 
-                #### @Diego, I'm publishing the octo map here, but I'm 
-                #### guessing it should be published not in a callback
-                self.pub.publish(self.updated_w_map)
-                #self.rate.sleep()
-                print(self.updated_w_map)
+        
         
 
                 
