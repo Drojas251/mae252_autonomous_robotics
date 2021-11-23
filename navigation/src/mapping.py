@@ -45,15 +45,17 @@ class Mapping():
   
             self.updated_w_map = OccupancyGrid()
             self.updated_w_map.info.resolution = 1/self.resolution # resolution = 1/resolution
-            self.updated_w_map.info.width = self.X #length of tunnel (depends on tunnel orientation)
-            self.updated_w_map.info.height = self.Y #width of tunnel (depends on tunnel orientation)
+            self.updated_w_map.info.width = 1000   # self.X #length of tunnel (depends on tunnel orientation)
+            self.updated_w_map.info.height = 300   #self.Y #width of tunnel (depends on tunnel orientation)
             self.updated_w_map.info.origin.position.x = 0 #map orgin in gazebo world
             self.updated_w_map.info.origin.position.y = 0
             self.updated_w_map.info.origin.position.z = 0
             self.updated_w_map.header.stamp = rospy.Time.now()
-            self.updated_w_map.header.frame_id = "octo-map"
+            self.updated_w_map.header.frame_id = "odom"
             arr = Int8()
-            arr.data = self.world_map.tolist()
+            arr.data = self.world_map.ravel().tolist()
+            for i in range(0,len(arr.data)):
+                    arr.data[i] = int(arr.data[i])
             self.updated_w_map.data = arr.data #input data
 
             self.updated_w_map.header.stamp = rospy.Time.now()
@@ -87,7 +89,7 @@ class Mapping():
             dist_away = math.sqrt(object_x**2+object_y**2)
 
             #filter lidar points to remove ground points in distance
-            if dist_away<=4:
+            if dist_away<=2.5:
                 #change lidar object points to world cordinate system
                 worldtf = np.dot(self.h_transform,robot_frame_object)
 
@@ -97,7 +99,7 @@ class Mapping():
 
                 #remove elements outside of worldmap indexing (AKA negatives)
                 if (element_x) >= 0 & (element_y >=0):
-                    self.world_map[[int(element_y) ], [int(element_x)]] = 1
+                    self.world_map[[int(element_y) ], [int(element_x)]] = 100
                     
                 #Troubleshooting purposes
                 #np.set_printoptions(threshold = np.inf)
