@@ -10,9 +10,6 @@ from nav_msgs.msg import OccupancyGrid
 from std_msgs.msg import Int8
 
 
-#### @Diego, is this a proper place to define a function or should it be
-#### defiend in the Mapping() class? If it is defined in the mapping class 
-#### how do I call it?
 def euler_from_quaternion(orientation_msg):
     #calculate nume and denom of components inside of atan for euler cordinates
     numerator = 2.0 * (orientation_msg.w * orientation_msg.z + orientation_msg.x * orientation_msg.y)
@@ -22,43 +19,43 @@ def euler_from_quaternion(orientation_msg):
     #yaw is rotation around z in radians (counterclockwise)
     return yaw_z # in radians
 
+
 class Mapping():
     
     def __init__(self):
+        # Intialize as subscriber and publisher
         self.get_pc = rospy.Subscriber("/passthrough/output", PointCloud2, self.pc_callback)
         self.get_pos = rospy.Subscriber("/gazebo/link_states", LinkStates, self.pos_callback)
         self.pub = rospy.Publisher("worldmap", OccupancyGrid, queue_size = 3)
         self.rate = rospy.Rate(1)
 
-        #map dimensions
+        # map dimensions
         self.X = 10 #meters
         self.Y = 3 # meters
         self.resolution = .01 # meters
         self.world_map = np.zeros((int(self.Y/self.resolution), int(self.X/self.resolution)))
-
-        ###### @Diego, This information is related to setting up the occupancy grid
-        ###### message. Not confident that this is the correct placement
-        #publish world map info
         
+        # define occupancy grid message header and data info
+        self.updated_w_map = OccupancyGrid()
+        self.updated_w_map.info.resolution = 1/self.resolution # resolution = 1/resolution
+        self.updated_w_map.info.width = int(self.X * (1/self.resolution))  # length of tunnel (depends on tunnel orientation)
+        self.updated_w_map.info.height = int(self.Y * (1/self.resolution))  # width of tunnel (depends on tunnel orientation)
+        self.updated_w_map.info.origin.position.x = 0 # map orgin in gazebo world
+        self.updated_w_map.info.origin.position.y = 0  # Note that thisis pose msg format
+        self.updated_w_map.info.origin.position.z = 0
+        self.updated_w_map.header.frame_id = "odom"
 
         while not rospy.is_shutdown():
   
-            self.updated_w_map = OccupancyGrid()
-            self.updated_w_map.info.resolution = 1/self.resolution # resolution = 1/resolution
-            self.updated_w_map.info.width = 1000   # self.X #length of tunnel (depends on tunnel orientation)
-            self.updated_w_map.info.height = 300   #self.Y #width of tunnel (depends on tunnel orientation)
-            self.updated_w_map.info.origin.position.x = 0 #map orgin in gazebo world
-            self.updated_w_map.info.origin.position.y = 0
-            self.updated_w_map.info.origin.position.z = 0
+            # publish occupancy grid from numpy info with corresponding timestamp
             self.updated_w_map.header.stamp = rospy.Time.now()
-            self.updated_w_map.header.frame_id = "odom"
-            arr = Int8()
-            arr.data = self.world_map.ravel().tolist()
-            for i in range(0,len(arr.data)):
-                    arr.data[i] = int(arr.data[i])
-            self.updated_w_map.data = arr.data #input data
+            
+            map_conversion = Int8()  # make instance of ros Int8 message
+            map_conversion.data = self.world_map.ravel().tolist()  # flatten array into list
+            for i in range(0,len(map_conversion.data)):
+                    map_conversion.data[i] = int(map_conversion.data[i])  #convert float to int
+            self.updated_w_map.data = map_conversion.data #input data
 
-            self.updated_w_map.header.stamp = rospy.Time.now()
             self.pub.publish(self.updated_w_map)
             rospy.Rate.sleep(self.rate)
 
@@ -79,6 +76,7 @@ class Mapping():
 
     def pc_callback(self, data):
         
+        # convert to numpy for manipulation
         pc = ros_numpy.numpify(data)
 
         for i in range(0,pc.size):
@@ -89,7 +87,7 @@ class Mapping():
             dist_away = math.sqrt(object_x**2+object_y**2)
 
             #filter lidar points to remove ground points in distance
-            if dist_away<=2.5:
+            if dist_away <= 3:  # 3 meters
                 #change lidar object points to world cordinate system
                 worldtf = np.dot(self.h_transform,robot_frame_object)
 
@@ -101,26 +99,13 @@ class Mapping():
                 if (element_x) >= 0 & (element_y >=0):
                     self.world_map[[int(element_y) ], [int(element_x)]] = 100
                     
-                #Troubleshooting purposes
-                #np.set_printoptions(threshold = np.inf)
-                #print("x: ",str(element_x), " y: ", str(element_y))
-                # store in map
-        
-                #Troubleshooting purposes
-                #print(self.world_map)
-                #print("*****************************")
-
-        
-        
 
                 
-
-
 def main():
     rospy.init_node('listener', anonymous=True)
     #rospy.init_node('talker', anonymous = True)
 
-    mapping = Mapping()
+    mapping = Mapping() # make instance of mapping class
 
     try:
         rospy.spin()
