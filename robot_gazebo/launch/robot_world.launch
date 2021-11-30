@@ -44,4 +44,7 @@
     </rosparam>
   </node>
 
+  <node pkg="navigation" type="mappingV2.py" name="mappingV2" output="screen" />
+
+
 </launch>
