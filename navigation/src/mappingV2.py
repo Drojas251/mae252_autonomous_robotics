@@ -37,15 +37,15 @@ class Mapping():
         self.rate = rospy.Rate(1)
 
         #map dimensions
-        self.X = 10 #meters
-        self.Y = 3 # meters
-        self.resolution = 0.1 # meters
+        self.X = 5 #meters
+        self.Y = 2.5 # meters
+        self.resolution = 0.01 # meters
         self.world_map = np.zeros((int(self.Y/self.resolution), int(self.X/self.resolution)))
 
         self.updated_w_map = OccupancyGrid()
         self.updated_w_map.info.resolution = self.resolution # resolution = 1/resolution
-        self.updated_w_map.info.width = self.X/self.resolution   # self.X #length of tunnel (depends on tunnel orientation)
-        self.updated_w_map.info.height = self.Y/self.resolution   #self.Y #width of tunnel (depends on tunnel orientation)
+        self.updated_w_map.info.width = int(self.X/self.resolution)   # self.X #length of tunnel (depends on tunnel orientation)
+        self.updated_w_map.info.height = int(self.Y/self.resolution)   #self.Y #width of tunnel (depends on tunnel orientation)
         self.updated_w_map.info.origin.position.x = 0 #map orgin in gazebo world
         self.updated_w_map.info.origin.position.y = 0
         self.updated_w_map.info.origin.position.z = 0
@@ -53,7 +53,7 @@ class Mapping():
 
 
         self.grid = make_grid(int(self.Y/self.resolution),int(self.X/self.resolution),self.resolution)
-        self.end = self.grid[200][500]
+        self.end = self.grid[120][400]
         self.PURPLE = (128, 0, 128)
 
         self.id = 0
@@ -136,13 +136,15 @@ class Mapping():
         self.updated_w_map.header.stamp = rospy.Time.now()
         self.pub.publish(self.updated_w_map)
 
+        """
+
 
         start_x = round(self.pos_x/self.resolution,2)
         start_y = round(self.pos_y/self.resolution,2)
 
         start = None
         start = self.grid[int(start_y)][int(start_x)]
-        start.make_start()
+        start.make_start() # make start pos = robot current pos
 
         for row in self.grid: # main algorithm
             for spot in row:
@@ -184,6 +186,7 @@ class Mapping():
         
         start.reset()
         print("new path")
+        """
 
 
 
