@@ -84,6 +84,9 @@ class Mapping():
 
 
     def pc_callback(self, data):
+
+        barrier_buffer =    3  # in cm (units determined by 1m*self.resolution)
+
         
         pc = ros_numpy.numpify(data)
 
@@ -97,29 +100,49 @@ class Mapping():
 
             #filter lidar points to remove ground points in distance
             #if dist_away<=2.5 and object_z > 0.075:
-            if dist_away<=3.5:    
+            if dist_away<=2.5:    
                 #change lidar object points to world cordinate system
                 worldtf = np.dot(self.h_transform,robot_frame_object)
 
-                wx = self.pos_x + math.cos(self.theta)*object_x + (-math.sin(self.theta)*object_y)
-                wy = self.pos_y + math.sin(self.theta)*object_x + math.cos(self.theta)*object_y
+                element_x = int(round(worldtf[0][0]/self.resolution))
+                element_y = int(round(worldtf[1][0]/self.resolution))
 
-                if wx >=0 and wy >=0:
+                #remove elements outside of worldmap indexing (AKA negatives)
+                if (element_x >= 0) & (element_y >=0)& element_x <= int(self.X/self.resolution) & element_y <= int(self.Y/self.resolution):
+                    for i in range(element_x - barrier_buffer, element_x + barrier_buffer):
+                        for j in range(element_y - barrier_buffer, element_y + barrier_buffer):
+                            if (abs(i-element_x)**2 + abs(j-element_y)**2)**.5 < barrier_buffer and i >=0 and j >= 0 and i<= int(self.X/self.resolution -1) and j<= int(self.Y/self.resolution - 1):
+
+                                self.world_map[[j], [i]] = 100
+                #self.world_map[[int(element_y) ], [int(element_x)]] = 100
+                barrier = self.grid[int(element_y)][int(element_x)] 
+                barrier.make_barrier()
+
+
+
+                # wx = self.pos_x + math.cos(self.theta)*object_x + (-math.sin(self.theta)*object_y)
+                # wy = self.pos_y + math.sin(self.theta)*object_x + math.cos(self.theta)*object_y
+
+                # if wx >=0 and wy >=0:
 
                     # get element in the map where the point would belong
                     #element_x = round(worldtf[0][0]/self.resolution,2)
                     #element_y = round(worldtf[1][0]/self.resolution,2)
 
-                    #ii, jj = self.xy_ij(wx,wy)
-                    #print("i",ii)
-                    #print('j',jj)
 
-                    element_x = round(wx/self.resolution,2)
-                    element_y = round(wy/self.resolution,2)
+                    # element_x = round(wx/self.resolution,2)
+                    # element_y = round(wy/self.resolution,2)
 
-                    self.world_map[[int(element_y) ], [int(element_x)]] = 100
-                    barrier = self.grid[int(element_y)][int(element_x)] 
-                    barrier.make_barrier()
+                    #remove elements outside of worldmap indexing (AKA negatives)
+                    # if (element_x >= 0) & (element_y >=0):
+                    #     for i in range(element_x - barrier_buffer, element_x + barrier_buffer):
+                    #         for j in range(element_y - barrier_buffer, element_y + barrier_buffer):
+                    #             if (abs(i-element_x)**2 + abs(j-element_y)**2)**.5 < barrier_buffer and i >=0 and j >= 0:
+
+                    #                 self.world_map[[j], [i]] = 100
+                    # self.world_map[[int(element_y) ], [int(element_x)]] = 100
+                    # barrier = self.grid[int(element_y)][int(element_x)] 
+                    # barrier.make_barrier()
 
 
                 ##remove elements outside of worldmap indexing (AKA negatives)

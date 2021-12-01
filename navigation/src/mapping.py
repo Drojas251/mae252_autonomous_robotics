@@ -75,6 +75,8 @@ class Mapping():
 
 
     def pc_callback(self, data):
+
+        barrier_buffer = 9  # in cm (units determined by 1m*self.resolution)
         
         # convert to numpy for manipulation
         pc = ros_numpy.numpify(data)
@@ -92,12 +94,16 @@ class Mapping():
                 worldtf = np.dot(self.h_transform,robot_frame_object)
 
                 # get element in the map where the point would belong
-                element_x = round(worldtf[0][0]/self.resolution)
-                element_y = round(worldtf[1][0]/self.resolution)
+                element_x = int(round(worldtf[0][0]/self.resolution))
+                element_y = int(round(worldtf[1][0]/self.resolution))
 
                 #remove elements outside of worldmap indexing (AKA negatives)
-                if (element_x) >= 0 & (element_y >=0):
-                    self.world_map[[int(element_y) ], [int(element_x)]] = 100
+                if (element_x >= 0) & (element_y >=0) & element_x <= (self.X*self.resolution) & element_y <= (self.Y*self.resolution):
+                    for i in range(element_x - barrier_buffer, element_x + barrier_buffer):
+                        for j in range(element_y - barrier_buffer, element_y + barrier_buffer):
+                            if (abs(i-element_x)**2 + abs(j-element_y)**2)**.5 < barrier_buffer and i >=0 and j >= 0:
+
+                                self.world_map[[j], [i]] = 100
                     
 
                 
