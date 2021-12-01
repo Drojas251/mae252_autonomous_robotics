@@ -73,7 +73,11 @@ class Mapping():
         #get robot x and y cords in world map followed by orientation in world map
         self.pos_x = data.pose[2].position.x
         self.pos_y = data.pose[2].position.y
+<<<<<<< HEAD
         self.theta = euler_from_quaternion(data.pose[5].orientation)
+=======
+        self.theta = euler_from_quaternion(data.pose[2].orientation)
+>>>>>>> 1f9b1bca783c4df2388c037c12af2f7f15aa7087
         
         #define 2D transform matrix
         # #self.h_transform = np.array([math.cos(self.theta),-math.sin(self.theta),self.pos_x, 
