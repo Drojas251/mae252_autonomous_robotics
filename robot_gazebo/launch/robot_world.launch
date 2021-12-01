@@ -1,7 +1,7 @@
 <launch>
   <!-- Arguments-->
   <arg name="model" default="burger" />
-  <arg name="x_pos" default="0.15"/>
+  <arg name="x_pos" default="-0.15"/>
   <arg name="y_pos" default="0.3"/>
   <arg name="z_pos" default="0.0"/>
   <arg name="multi_robot_name" default=""/>
@@ -45,6 +45,8 @@
   </node>
 
   <node pkg="navigation" type="mappingV2.py" name="mappingV2" output="screen" />
+  <node pkg="navigation" type="pathplanning.py" name="pathplanning" output="screen" />
+  <node pkg="move" type="move_node.py" name="move_node" output="screen" />
 
 
 </launch>

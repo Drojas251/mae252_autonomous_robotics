@@ -108,8 +108,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 0.34209004044532776
-        Min Value: 0.02283865213394165
+        Max Value: 0.34171172976493835
+        Min Value: 0.02411547303199768
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -166,6 +166,14 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /path
       Unreliable: false
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /marker
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
