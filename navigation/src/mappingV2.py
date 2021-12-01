@@ -71,9 +71,9 @@ class Mapping():
 
     def pos_callback(self, data):
         #get robot x and y cords in world map followed by orientation in world map
-        self.pos_x = data.pose[5].position.x
-        self.pos_y = data.pose[5].position.y
-        self.theta = euler_from_quaternion(data.pose[5].orientation)
+        self.pos_x = data.pose[2].position.x
+        self.pos_y = data.pose[2].position.y
+        self.theta = euler_from_quaternion(data.pose[2].orientation)
         
         #define 2D transform matrix
         # #self.h_transform = np.array([math.cos(self.theta),-math.sin(self.theta),self.pos_x, 
