@@ -1,14 +1,14 @@
 <launch>
   <!-- Arguments-->
   <arg name="model" default="burger" />
-  <arg name="x_pos" default="0.1"/>
-  <arg name="y_pos" default="0.1"/>
+  <arg name="x_pos" default="0.15"/>
+  <arg name="y_pos" default="0.3"/>
   <arg name="z_pos" default="0.0"/>
   <arg name="multi_robot_name" default=""/>
 
   <!--Load Simulation World-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find robot_gazebo)/worlds/robot.world"/>
+    <arg name="world_name" value="$(find robot_gazebo)/worlds/wire.world"/>
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>

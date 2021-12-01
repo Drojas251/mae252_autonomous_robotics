@@ -37,8 +37,8 @@ class Mapping():
         self.rate = rospy.Rate(1)
 
         #map dimensions
-        self.X = 5 #meters
-        self.Y = 2.5 # meters
+        self.X = 4 #meters
+        self.Y = 1 # meters
         self.resolution = 0.01 # meters
         self.world_map = np.zeros((int(self.Y/self.resolution), int(self.X/self.resolution)))
 
@@ -53,14 +53,12 @@ class Mapping():
 
 
         self.grid = make_grid(int(self.Y/self.resolution),int(self.X/self.resolution),self.resolution)
-        self.end = self.grid[120][400]
+        self.end = self.grid[50][350]
         self.PURPLE = (128, 0, 128)
 
         self.id = 0
 
-        ###### @Diego, This information is related to setting up the occupancy grid
-        ###### message. Not confident that this is the correct placement
-        #publish world map info
+        
 
     def xy_ij(self,x,y):
         x = round(x,2)
@@ -73,17 +71,20 @@ class Mapping():
 
     def pos_callback(self, data):
         #get robot x and y cords in world map followed by orientation in world map
-        self.pos_x = data.pose[5].position.x
-        self.pos_y = data.pose[5].position.y
-        self.theta = euler_from_quaternion(data.pose[5].orientation)
+        self.pos_x = data.pose[2].position.x
+        self.pos_y = data.pose[2].position.y
+        self.theta = euler_from_quaternion(data.pose[2].orientation)
         
         #define 2D transform matrix
-        self.h_transform = np.array([math.cos(self.theta),-math.sin(self.theta),self.pos_x, 
-                                    math.sin(self.theta),math.cos(self.theta),self.pos_y,
-                                    0 ,             0,              1]).reshape(3,3)
+        # #self.h_transform = np.array([math.cos(self.theta),-math.sin(self.theta),self.pos_x, 
+        #                             math.sin(self.theta),math.cos(self.theta),self.pos_y,
+        #                             0 ,             0,              1]).reshape(3,3)
 
 
     def pc_callback(self, data):
+
+        barrier_buffer =    2  # in cm (units determined by 1m*self.resolution)
+
         
         pc = ros_numpy.numpify(data)
 
@@ -91,15 +92,31 @@ class Mapping():
             #identify cords for each filtered lidar point from robot
             object_x = pc[i][0]
             object_y = pc[i][1]
-            object_z = pc[i][2] 
-            robot_frame_object = np.array([object_x, object_y, 1]).reshape(3,1)
+            #object_z = pc[i][2] 
+            #robot_frame_object = np.array([object_x, object_y, 1]).reshape(3,1)
             dist_away = math.sqrt(object_x**2+object_y**2)
 
             #filter lidar points to remove ground points in distance
             #if dist_away<=2.5 and object_z > 0.075:
-            if dist_away<=3.5:    
+            if dist_away<=2.5:    
                 #change lidar object points to world cordinate system
-                worldtf = np.dot(self.h_transform,robot_frame_object)
+                # worldtf = np.dot(self.h_transform,robot_frame_object)
+
+                # element_x = int(round(worldtf[0][0]/self.resolution))
+                # element_y = int(round(worldtf[1][0]/self.resolution))
+
+                #remove elements outside of worldmap indexing (AKA negatives)
+                # if (element_x >= 0) & (element_y >=0)& element_x <= int(self.X/self.resolution) & element_y <= int(self.Y/self.resolution):
+                #     for i in range(element_x - barrier_buffer, element_x + barrier_buffer):
+                #         for j in range(element_y - barrier_buffer, element_y + barrier_buffer):
+                #             if (abs(i-element_x)**2 + abs(j-element_y)**2)**.5 < barrier_buffer and i >=0 and j >= 0 and i<= int(self.X/self.resolution -1) and j<= int(self.Y/self.resolution - 1):
+
+                #                 self.world_map[[j], [i]] = 100
+                #self.world_map[[int(element_y) ], [int(element_x)]] = 100
+                # barrier = self.grid[int(element_y)][int(element_x)] 
+                # barrier.make_barrier()
+
+
 
                 wx = self.pos_x + math.cos(self.theta)*object_x + (-math.sin(self.theta)*object_y)
                 wy = self.pos_y + math.sin(self.theta)*object_x + math.cos(self.theta)*object_y
@@ -110,16 +127,20 @@ class Mapping():
                     #element_x = round(worldtf[0][0]/self.resolution,2)
                     #element_y = round(worldtf[1][0]/self.resolution,2)
 
-                    #ii, jj = self.xy_ij(wx,wy)
-                    #print("i",ii)
-                    #print('j',jj)
 
-                    element_x = round(wx/self.resolution,2)
-                    element_y = round(wy/self.resolution,2)
+                    element_x = int(round(wx/self.resolution,2))
+                    element_y = int(round(wy/self.resolution,2))
 
-                    self.world_map[[int(element_y) ], [int(element_x)]] = 100
-                    barrier = self.grid[int(element_y)][int(element_x)] 
-                    barrier.make_barrier()
+                    #remove elements outside of worldmap indexing (AKA negatives)
+                    #  if (element_x >= 0) & (element_y >=0)& element_x <= int(self.X/self.resolution) & element_y <= int(self.Y/self.resolution):
+                    for i in range(element_x - barrier_buffer, element_x + barrier_buffer):
+                        for j in range(element_y - barrier_buffer, element_y + barrier_buffer):
+                            if  i >=0 and j >= 0 and i<= int(self.X/self.resolution -1) and j<= int(self.Y/self.resolution - 1):  # (abs(i-element_x)**2 + abs(j-element_y)**2)**.5 < barrier_buffer and
+
+                                self.world_map[[j], [i]] = 100
+                    # self.world_map[[int(element_y) ], [int(element_x)]] = 100
+                    # barrier = self.grid[int(element_y)][int(element_x)] 
+                    # barrier.make_barrier()
 
 
                 ##remove elements outside of worldmap indexing (AKA negatives)
