@@ -58,8 +58,8 @@ def odom_callback(msg):
 rospy.init_node('move_publisher')
 pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
 sub = rospy.Subscriber('/odom', Odometry, odom_callback)
+rate = rospy.Rate(8)
 waypoint_sub = rospy.Subscriber('/waypoint', Pose, waypoint_callback, queue_size = 1)
-rate = rospy.Rate(2)
 move = Twist()
 rospy.sleep(5)
 

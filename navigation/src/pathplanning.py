@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from ctypes import pointer
+from sys import path
 import rospy
 import numpy as np
 import math
@@ -12,8 +14,24 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
 from visualization_msgs.msg import Marker
 from a_star.a_star import *
+from a_star.Bezier import Bezier
+
+def h(p1, p2):
+	x1, y1 = p1
+	x2, y2 = p2
+	return abs(x1 - x2) + abs(y1 - y2)
 
 
+def make_grid(rows, col,width):
+	grid = []
+	gap = width // rows
+	for i in range(rows):
+		grid.append([])
+		for j in range(col):
+			spot = Spot(i, j, gap, rows,col)
+			grid[i].append(spot)
+
+	return grid
 
 class PathPlanning():
     
@@ -27,9 +45,8 @@ class PathPlanning():
         #map dimensions
         self.X = 4 #meters
         self.Y = 1 # meters
-        self.resolution = 0.01 # meters
+        self.resolution = 0.02 # meters
 
-        self.grid = make_grid(int(self.Y/self.resolution),int(self.X/self.resolution),self.resolution)
         #self.waypoints = np.array([50,50],[150,300])
         self.PURPLE = (128, 0, 128)
         #self.end = self.grid[50][150]
@@ -37,88 +54,185 @@ class PathPlanning():
         self.id = 0 
 
 
+
     def pos_callback(self, data):
         #get robot x and y cords in world map followed by orientation in world map
         self.pos_x = data.pose[2].position.x
         self.pos_y = data.pose[2].position.y   
+
+    def reconstruct_path(self,came_from, current):
+
+        path_x = []
+        path_y = []
+        while current in came_from:
+            current = came_from[current]
+            current.make_path()
+            path_x.append(current.col)
+            path_y.append(current.row)
+        self.pathx = path_x
+        self.pathy = path_y
+
+
+    def algorithm(self,grid, start, end):
+        count = 0
+        open_set = PriorityQueue()
+        open_set.put((0, count, start))
+        came_from = {}
+        g_score = {spot: float("inf") for row in grid for spot in row}
+        g_score[start] = 0
+        f_score = {spot: float("inf") for row in grid for spot in row}
+        f_score[start] = h(start.get_pos(), end.get_pos())
+        px = []
+        py = []
+        open_set_hash = {start}
+
+        while not open_set.empty():
+            #for event in pygame.event.get():
+            #	if event.type == pygame.QUIT:
+            #		pygame.quit()
+
+            current = open_set.get()[2]
+            open_set_hash.remove(current)
+
+            if current == end:          
+                self.reconstruct_path(came_from, end)
+                end.make_end()
+                return True
+
+            for neighbor in current.neighbors:
+                temp_g_score = g_score[current] + 1
+
+                if temp_g_score < g_score[neighbor]:
+                    came_from[neighbor] = current
+                    g_score[neighbor] = temp_g_score
+                    f_score[neighbor] = temp_g_score + h(neighbor.get_pos(), end.get_pos())
+                    if neighbor not in open_set_hash:
+                        count += 1
+                        open_set.put((f_score[neighbor], count, neighbor))
+                        open_set_hash.add(neighbor)
+                        neighbor.make_open()
+
+            #draw()
+
+            if current != start:
+                current.make_closed()
+
+        return False
+
 
 
     def path_planning_callback(self, data):
      
         array_data = np.asarray(data.data)
         world_map = array_data.reshape(int(self.Y/self.resolution),int(self.X/self.resolution))
-        #print("1",len(world_map))
-        #print("2",len(world_map[0]))
 
+        start_x = round(self.pos_x/self.resolution)
+        start_y = round(self.pos_y/self.resolution)
 
-        start_x = round(self.pos_x/self.resolution,2)
-        start_y = round(self.pos_y/self.resolution,2)
-
-        if start_x < 100:
-            self.end = self.grid[50][180]
-            print("Moving to first_way_point")
-        elif start_x > 100 and start_x < 250:
-            self.end = self.grid[80][250]
-            print("Moving to Second_way_point")
-        else:
-            self.end = self.grid[80][400]
-            print("Moving to Third_way_point")
-        
-
-
+        grid = make_grid(int(self.Y/self.resolution),int(self.X/self.resolution),self.resolution)
+        end = grid[40][180]
         start = None
-        start = self.grid[int(start_y)][int(start_x)]
+        start = grid[int(start_y)][int(start_x)]
         start.make_start() # make start pos = robot current pos
 
         for r in range(len(world_map)):
             for c in range(len(world_map[0])):
-                if world_map[r][c] == 100:
-                    barrier = self.grid[int(r)][int(c)] 
+                if int(world_map[r][c]) > 0:
+                    barrier = grid[int(r)][int(c)] 
                     barrier.make_barrier()
 
-        for row in self.grid: # main algorithm
+                    #print('r',r)
+                    #print(c)
+
+        for row in grid: # main algorithm
             for spot in row:
-                spot.update_neighbors(self.grid)
+                spot.update_neighbors(grid)
 
-        algorithm(self.grid, start, self.end)
+        self.algorithm(grid, start, end)
 
-        pathx = []
-        pathy = []
+        smooth_path = False # set to False for no smooth path
 
         path = Path()
         path.header.stamp = rospy.Time.now()
         path.header.frame_id = "odom"
         path.header.seq = self.id
 
-        r = 0
-        for row in self.grid:
-            c = 0
-            for spot in row:
-                if spot.color == self.PURPLE: 
-                    pose = PoseStamped()
-                    pose.header.stamp = rospy.Time.now()
-                    pose.header.frame_id = "odom"
+        if smooth_path == True:
+            #** Code for getting a smooth path ** 
 
-                    pose.pose.position.x = c*self.resolution
-                    pose.pose.position.y = r*self.resolution
-                    pose.pose.position.z = 0
-                    pose.pose.orientation.w = 1
+            path_length = len(self.pathx)
+            points_on_path = np.zeros((path_length, 2))
 
-                    path.poses.append(pose)
+            for k in range(path_length):
+                c = self.pathx[path_length - 1 -k]
+                x = c*self.resolution
 
-                    pathx.append(c)
-                    pathy.append(r)
-                    spot.reset()
-                c = c +1
-            r = r +1
-                    
-        self.path.publish(path)
+                r = self.pathy[path_length - 1 -k]
+                y = self.resolution*(r)
 
-        waypoint = Pose()
-        waypoint.position.x = pathx[15]*self.resolution
-        waypoint.position.y = pathy[15]*self.resolution
-        waypoint.position.z = 0
-        waypoint.orientation.w = 1.0
+                points_on_path[k,0] = x
+                points_on_path[k,1] = y
+
+            # create smooth path using bezier curve
+            t_points = np.arange(0, 1, 0.02)
+            curve_set = Bezier.Curve(t_points, points_on_path)
+
+            for i in range(len(curve_set)):
+                pose = PoseStamped()
+                pose.header.stamp = rospy.Time.now()
+                pose.header.frame_id = "odom"
+
+                pose.pose.position.x = curve_set[i,0]
+                pose.pose.position.y = curve_set[i,1]
+                pose.pose.position.z = 0
+                pose.pose.orientation.w = 1
+
+                path.poses.append(pose)
+
+            self.path.publish(path)
+
+            pl = len(curve_set)
+            waypoint = Pose()
+            waypoint.position.x = curve_set[round(pl/6),0]
+            waypoint.position.y = curve_set[round(pl/6),1]
+            waypoint.position.z = 0
+            waypoint.orientation.w = 1.0
+
+        else:
+            path_length = len(self.pathx)
+            pointx = []
+            pointy = []
+
+            for k in range(path_length):
+                c = self.pathx[path_length - 1 -k]
+                x = c*self.resolution
+
+                r = self.pathy[path_length - 1 -k]
+                y = self.resolution*(r)
+
+                pointx.append(x)
+                pointy.append(y)
+
+                pose = PoseStamped()
+                pose.header.stamp = rospy.Time.now()
+                pose.header.frame_id = "odom"
+
+                pose.pose.position.x = x
+                pose.pose.position.y = y
+                pose.pose.position.z = 0
+                pose.pose.orientation.w = 1
+
+                path.poses.append(pose)
+
+            self.path.publish(path)
+
+            pl = len(pointx)
+            waypoint = Pose()
+            waypoint.position.x = pointx[round(pl/6)]
+            waypoint.position.y = pointy[round(pl/6)]
+            waypoint.position.z = 0
+            waypoint.orientation.w = 1.0
+
 
         maker_object = Marker()
         maker_object.header.frame_id = 'odom'
@@ -139,12 +253,10 @@ class PathPlanning():
         maker_object.lifetime = rospy.Duration(0)
         self.marker.publish(maker_object)
 
-
-
         self.waypoint.publish(waypoint)
-        
+
         start.reset()
-        print("new path")
+        #print("new path")
 
 
 

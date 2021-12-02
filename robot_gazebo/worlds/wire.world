@@ -114,10 +114,10 @@
       
 
       <model name='wire_hallway'>
-        <pose>4 1.15 0 0 0 3.14</pose>
+        <pose>0 -0.15 0 0 0 0</pose>
         <scale>1 1 1</scale>
         <link name='hallway'>
-          <pose>4 1.15 0 0 0 3.14</pose>
+          <pose>0 -0.15 0 0 0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 -9.8 0 -0 0</acceleration>
           <wrench>0 0 -9.8 0 -0 0</wrench>
@@ -139,7 +139,7 @@
     
     <model name='wire_hallway'>
     <static>1</static>
-      <pose>4 1.15 0 0 0 3.14</pose>
+      <pose>0 -0.15 0 0 0 0</pose>
       <link name='hallway'>
         <inertial>
           <mass>1000</mass>

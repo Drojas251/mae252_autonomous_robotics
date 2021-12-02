@@ -12,7 +12,7 @@ from nav_msgs.msg import Path
 from std_msgs.msg import Int8
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
-from a_star.a_star import *
+
 
 
 #### @Diego, is this a proper place to define a function or should it be
@@ -39,7 +39,7 @@ class Mapping():
         #map dimensions
         self.X = 4 #meters
         self.Y = 1 # meters
-        self.resolution = 0.01 # meters
+        self.resolution = 0.02 # meters
         self.world_map = np.zeros((int(self.Y/self.resolution), int(self.X/self.resolution)))
 
         self.updated_w_map = OccupancyGrid()
@@ -52,9 +52,6 @@ class Mapping():
         self.updated_w_map.header.frame_id = "odom"
 
 
-        self.grid = make_grid(int(self.Y/self.resolution),int(self.X/self.resolution),self.resolution)
-        self.end = self.grid[50][350]
-        self.PURPLE = (128, 0, 128)
 
         self.id = 0
 
@@ -73,7 +70,7 @@ class Mapping():
         #get robot x and y cords in world map followed by orientation in world map
         self.pos_x = data.pose[2].position.x
         self.pos_y = data.pose[2].position.y
-        self.theta = euler_from_quaternion(data.pose[5].orientation)
+        self.theta = euler_from_quaternion(data.pose[2].orientation)
         
         #define 2D transform matrix
         # #self.h_transform = np.array([math.cos(self.theta),-math.sin(self.theta),self.pos_x, 
@@ -83,7 +80,7 @@ class Mapping():
 
     def pc_callback(self, data):
 
-        barrier_buffer =    2  # in cm (units determined by 1m*self.resolution)
+        barrier_buffer =    1  # in cm (units determined by 1m*self.resolution)
 
         
         pc = ros_numpy.numpify(data)
@@ -133,11 +130,11 @@ class Mapping():
 
                     #remove elements outside of worldmap indexing (AKA negatives)
                     #  if (element_x >= 0) & (element_y >=0)& element_x <= int(self.X/self.resolution) & element_y <= int(self.Y/self.resolution):
-                    for i in range(element_x - barrier_buffer, element_x + barrier_buffer):
-                        for j in range(element_y - barrier_buffer, element_y + barrier_buffer):
+                    for i in range(element_x - barrier_buffer, element_x + barrier_buffer + 1):
+                        for j in range(element_y - barrier_buffer, element_y + barrier_buffer + 1):
                             if  i >=0 and j >= 0 and i<= int(self.X/self.resolution -1) and j<= int(self.Y/self.resolution - 1):  # (abs(i-element_x)**2 + abs(j-element_y)**2)**.5 < barrier_buffer and
 
-                                self.world_map[[j], [i]] = 100
+                                self.world_map[j][i] = 100
                     # self.world_map[[int(element_y) ], [int(element_x)]] = 100
                     # barrier = self.grid[int(element_y)][int(element_x)] 
                     # barrier.make_barrier()
@@ -146,6 +143,8 @@ class Mapping():
                 ##remove elements outside of worldmap indexing (AKA negatives)
                 #if (element_x) >= 0 & (element_y >=0):
                 #    self.world_map[[int(element_y) ], [int(element_x)]] = 100
+
+           
 
         self.updated_w_map.header.stamp = rospy.Time.now()
         arr = Int8()
@@ -157,72 +156,6 @@ class Mapping():
         self.updated_w_map.header.stamp = rospy.Time.now()
         self.pub.publish(self.updated_w_map)
 
-        """
-
-
-        start_x = round(self.pos_x/self.resolution,2)
-        start_y = round(self.pos_y/self.resolution,2)
-
-        start = None
-        start = self.grid[int(start_y)][int(start_x)]
-        start.make_start() # make start pos = robot current pos
-
-        for row in self.grid: # main algorithm
-            for spot in row:
-                spot.update_neighbors(self.grid)
-
-        algorithm(self.grid, start, self.end)
-
-        pathx = []
-        pathy = []
-
-        path = Path()
-        path.header.stamp = rospy.Time.now()
-        path.header.frame_id = "odom"
-        path.header.seq = self.id
-
-        r = 0
-        for row in self.grid:
-            c = 0
-            for spot in row:
-                if spot.color == self.PURPLE: 
-                    pose = PoseStamped()
-                    pose.header.stamp = rospy.Time.now()
-                    pose.header.frame_id = "odom"
-
-                    pose.pose.position.x = c*self.resolution
-                    pose.pose.position.y = r*self.resolution
-                    pose.pose.position.z = 0
-                    pose.pose.orientation.w = 1
-
-                    path.poses.append(pose)
-
-                    pathx.append(c)
-                    pathy.append(r)
-                    spot.reset()
-                c = c +1
-            r = r +1
-                    
-        self.path.publish(path)
-        
-        start.reset()
-        print("new path")
-        """
-
-
-
-
-
-
-
-                #Troubleshooting purposes
-                #np.set_printoptions(threshold = np.inf)
-                #print("x: ",str(element_x), " y: ", str(element_y))
-                # store in map
-        
-                #Troubleshooting purposes
-                #print(self.world_map)
-                #print("*****************************")
 
         
         

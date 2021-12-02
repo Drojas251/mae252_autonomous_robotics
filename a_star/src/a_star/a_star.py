@@ -83,22 +83,23 @@ class Spot:
 		if self.col > 0 and not grid[self.row][self.col - 1].is_barrier(): # LEFT
 			self.neighbors.append(grid[self.row][self.col - 1])
             
-		if (self.col > 0 and not grid[self.row][self.col - 1].is_barrier()) and (self.row > 0 and not grid[self.row - 1][self.col].is_barrier()): # LEFT Up
-			self.neighbors.append(grid[self.row - 1][self.col - 1]) 
+		#if (self.col > 0 and not grid[self.row][self.col - 1].is_barrier()) and (self.row > 0 and not grid[self.row - 1][self.col].is_barrier()): # LEFT Up
+		#	self.neighbors.append(grid[self.row - 1][self.col - 1]) 
       
-		if (self.col > 0 and not grid[self.row][self.col - 1].is_barrier()) and (self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_barrier()): # LEFT Down
-			self.neighbors.append(grid[self.row + 1][self.col - 1])      
+		#if (self.col > 0 and not grid[self.row][self.col - 1].is_barrier()) and (self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_barrier()): # LEFT Down
+		#	self.neighbors.append(grid[self.row + 1][self.col - 1])      
 
-		if (self.col < self.total_col - 1 and not grid[self.row][self.col + 1].is_barrier()) and (self.row > 0 and not grid[self.row - 1][self.col].is_barrier()): # LEFT
-			self.neighbors.append(grid[self.row - 1][self.col + 1])  
-            
-		if (self.col < self.total_col - 1 and not grid[self.row][self.col + 1].is_barrier()) and (self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_barrier()): # LEFT
-			self.neighbors.append(grid[self.row + 1][self.col + 1])              
+		#if (self.col < self.total_col - 1 and not grid[self.row][self.col + 1].is_barrier()) and (self.row > 0 and not grid[self.row - 1][self.col].is_barrier()): # LEFT
+		#	self.neighbors.append(grid[self.row - 1][self.col + 1])  
+        #    
+		#if (self.col < self.total_col - 1 and not grid[self.row][self.col + 1].is_barrier()) and (self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_barrier()): # LEFT
+		#	self.neighbors.append(grid[self.row + 1][self.col + 1])              
 
 	def __lt__(self, other):
 		return False
 
 
+"""
 def h(p1, p2):
 	x1, y1 = p1
 	x2, y2 = p2
@@ -168,3 +169,5 @@ def make_grid(rows, col,width):
 			grid[i].append(spot)
 
 	return grid
+
+"""

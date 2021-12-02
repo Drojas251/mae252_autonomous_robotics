@@ -108,8 +108,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 0.34171172976493835
-        Min Value: 0.02411547303199768
+        Max Value: 0.3364408016204834
+        Min Value: -0.0010834038257598877
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -179,7 +179,7 @@ Visualization Manager:
   Global Options:
     Background Color: 108; 108; 108
     Default Light: true
-    Fixed Frame: base_footprint
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -211,17 +211,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.0308607816696167
-        Y: 1.5965032577514648
-        Z: 7.227063179016113e-07
+        X: 0.1950763463973999
+        Y: 0.9700324535369873
+        Z: 9.611248970031738e-07
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2603982985019684
+      Pitch: 1.0353978872299194
       Target Frame: <Fixed Frame>
-      Yaw: 3.663612127304077
+      Yaw: 3.153608798980713
     Saved: ~
 Window Geometry:
   Displays:
@@ -239,5 +239,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1440
-  X: 0
-  Y: 0
+  X: 67
+  Y: 27
