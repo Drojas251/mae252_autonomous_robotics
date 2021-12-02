@@ -228,8 +228,8 @@ class PathPlanning():
 
             pl = len(pointx)
             waypoint = Pose()
-            waypoint.position.x = pointx[round(pl/6)]
-            waypoint.position.y = pointy[round(pl/6)]
+            waypoint.position.x = pointx[5]
+            waypoint.position.y = pointy[5]
             waypoint.position.z = 0
             waypoint.orientation.w = 1.0
 

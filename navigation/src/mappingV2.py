@@ -80,7 +80,7 @@ class Mapping():
 
     def pc_callback(self, data):
 
-        barrier_buffer =    1  # in cm (units determined by 1m*self.resolution)
+        barrier_buffer =    0  # in cm (units determined by 1m*self.resolution)
 
         
         pc = ros_numpy.numpify(data)
